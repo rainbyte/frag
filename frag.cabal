@@ -1,0 +1,65 @@
+Name:                frag
+Version:             1.1
+License:             GPL
+License-file:        LICENSE
+Synopsis:            3-D First Person Shooter (FPS)
+Description:         A fast and basic reimplementation of the Quake III Arena engine
+                     in Haskell; supports many Quake III Arena maps.
+Category:            Game
+Author:              Mun Hon Cheong
+Maintainer:          dons@galois.com
+Homepage:            http://haskell.org/haskellwiki/Frag
+
+Build-Depends:       base, haskell98, GLUT, OpenGL>=2.0, array
+Build-Type:          Simple
+Cabal-Version:       >= 1.2
+Tested-with:         GHC==6.8.2
+data-files:          README, README-leveleg
+                     -- Graphics files
+                     leveleg.bsp, leveleg.cfg, leveleg.med
+                     tga/models/players/klesk/lower_default.skin, tga/models/players/klesk/lower.md3
+                     tga/models/players/klesk/head_default.skin, tga/models/players/klesk/l_red.tga
+                     tga/models/players/klesk/h_red.tga, tga/models/players/klesk/animation.cfg
+                     tga/models/players/klesk/head.md3, tga/models/players/klesk/u_red.tga
+                     tga/models/players/klesk/upper_default.skin, tga/models/players/klesk/upper.md3
+                     tga/models/weapons/railgun.shader, tga/models/weapons/railgun.md3
+                     tga/font.tga, tga/7.tga, tga/3.tga, tga/4.tga, tga/5.tga, tga/2.tga
+                     tga/crosshaira.tga, tga/0.tga, tga/hyphen.tga, tga/9.tga, tga/1.tga, tga/6.tga
+                     tga/tga/models/weapons/railgun4.tga, tga/tga/models/weapons/railgun2.tga
+                     tga/tga/models/weapons/railgun.tga, tga/tga/models/weapons/railgun3.tga
+                     tga/8.tga, tga/textures/gothic_floor/q1metal7_99.tga
+                     tga/textures/gothic_floor/largerblock3b3.tga, tga/textures/gothic_floor/largerblock3b3dim.tga
+                     tga/textures/e7/e7brickfloor01.tga, tga/textures/e7/e7bmtrim.tga
+                     tga/textures/e7/e7bricks01.tga, tga/textures/e7/e7sbrickfloor.tga
+                     tga/textures/e7/e7panelwood.tga, tga/textures/e7/e7swindow.tga
+                     tga/textures/e7/e7panelwood2.tga, tga/textures/organics/dirt2.tga
+                     tga/textures/common/trigger.tga, tga/textures/common/clip.tga
+                     tga/textures/skies/nitesky.tga, tga/textures/gothic_trim/border7.tga
+                     tga/textures/gothic_trim/pitted_rust3.tga, tga/textures/gothic_trim/km_arena1tower4.tga
+                     tga/textures/gothic_trim/wood2.tga, tga/textures/gothic_trim/metalsupport4i_bit.tga
+                     tga/textures/gothic_light/ironcrosslt2_10000.tga, tga/textures/stone/pjrock6.tga
+                     tga/textures/base_support/flat1_1.tga, tga/textures/skin/pjwal2k.tga
+                     tga/textures/gothic_wall/slateroofc.tga, tga/textures/gothic_wall/proto_brik.tga
+                     tga/textures/gothic_wall/oct20c.tga, tga/textures/evil8_floor/e8cretefloor01b.tga
+                     tga/textures/gothic_block/killblock.tga, tga/textures/gothic_block/killblock_j2.tga
+                     tga/textures/gothic_block/blocks15_blue.tga, tga/textures/gothic_block/blocks11b.tga
+                     tga/textures/gothic_block/blocks18d.tga, tga/textures/gothic_block/blocks18b.tga
+
+Library
+        Hs-source-dirs:      src
+        Build-Depends:       base, haskell98, GLUT, OpenGL>=2.0, array
+        exposed-modules:     AFRPAffineSpace, AFRPDiagnostics, AFRPEvent, AFRPForceable, AFRPGeometry,
+                             AFRP, AFRPInternals, AFRPMiscellany, AFRPPoint2, AFRPPoint3, AFRPTask,
+                             AFRPUtilities, AFRPVector2, AFRPVector3, AFRPVectorSpace, BitSet, BSP,
+                             Camera, Collision, Command, Curves, Diagnostics, Frustum, Game, HGL,
+                             IdentityList, MapCfg, Matrix, MD3, ObjectBehavior, Object, Parser,
+                             PhysicalDimensions, Quaternion, Raybox, ReadImage, Render, RenderObject,
+                             TextureFonts, Textures, TGA, Visibility
+
+Executable frag
+           Main-is:             Main.hs
+           Hs-source-dirs:      src
+
+           Ghc-options:         -O2 -funbox-strict-fields -optl-Wl,-s -fno-glasgow-exts
+           Extensions:          BangPatterns, FunctionalDependencies, FlexibleInstances,
+                                MultiParamTypeClasses, TypeOperators, Rank2Types
