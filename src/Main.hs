@@ -12,7 +12,7 @@ import Graphics.UI.GLUT
 import Graphics.Rendering.OpenGL
 import Data.IORef
 import Data.Maybe
-import Monad
+import Control.Monad
 import qualified HGL as HGL
 import AFRP
 import AFRPInternals
@@ -22,7 +22,7 @@ import Parser
 import Object
 import BSP
 import Camera
-import System(ExitCode(..), exitWith)
+import System.Exit (ExitCode(..), exitWith)
 import Matrix
 import MD3
 import Data.HashTable

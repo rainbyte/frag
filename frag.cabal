@@ -10,7 +10,7 @@ Author:              Mun Hon Cheong
 Maintainer:          dons@galois.com
 Homepage:            http://haskell.org/haskellwiki/Frag
 
-Build-Depends:       base, haskell98, GLUT, OpenGL>=2.0, array
+Build-Depends:       base>3, GLUT, OpenGL>=2.0, array, random
 Build-Type:          Simple
 Cabal-Version:       >= 1.2
 Tested-with:         GHC==6.8.2
@@ -47,7 +47,7 @@ data-files:          README, README-leveleg
 
 Library
         Hs-source-dirs:      src
-        Build-Depends:       base, haskell98, GLUT, OpenGL>=2.0, array
+        Build-Depends:       base, GLUT, OpenGL>=2.0, array, random
         exposed-modules:     AFRPAffineSpace, AFRPDiagnostics, AFRPEvent, AFRPForceable, AFRPGeometry,
                              AFRP, AFRPInternals, AFRPMiscellany, AFRPPoint2, AFRPPoint3, AFRPTask,
                              AFRPUtilities, AFRPVector2, AFRPVector3, AFRPVectorSpace, BitSet, BSP,

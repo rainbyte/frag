@@ -254,8 +254,8 @@ module AFRP (
                         --       -> (a, [(DTime, Maybe a)])
 ) where
 
-import Monad (unless)
-import Random (RandomGen(..), Random(), randoms, randomRs)
+import Control.Monad (unless)
+import System.Random (RandomGen(..), Random(), randoms, randomRs)
 import Data.IORef
 import Control.Arrow
 import AFRPDiagnostics

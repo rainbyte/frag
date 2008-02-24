@@ -5,7 +5,7 @@ import AFRPInternals (Event(..))
 import Collision
 import Raybox
 import BSP
-import List
+import Data.List
 import IdentityList
 import Object
 import Parser

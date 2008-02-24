@@ -1,6 +1,6 @@
 module ObjectBehavior (aicube, camera) where
 
-import Maybe (fromJust)
+import Data.Maybe (fromJust)
 
 import AFRP
 import Camera

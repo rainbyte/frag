@@ -39,7 +39,7 @@ module Parser (
 
 ) where
 
-import Maybe (isJust)
+import Data.Maybe (isJust)
 import qualified HGL as HGL (Event(..))
 import qualified HGL as HGL (Point(..))
 import AFRP

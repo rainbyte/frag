@@ -10,8 +10,8 @@ module TextureFonts where
 
 import Graphics.UI.GLUT
 import Textures
-import Maybe
-import Char
+import Data.Maybe
+import Data.Char
 import Data.HashTable
 
 

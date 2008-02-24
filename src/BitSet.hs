@@ -5,7 +5,7 @@
 
 module BitSet where
 
-import Monad (liftM)
+import Control.Monad (liftM)
 import Data.Array.IO (IOUArray, newArray, writeArray, readArray, getBounds, rangeSize)
 
 newtype BitSet = BitSet (IOUArray Int Bool)
