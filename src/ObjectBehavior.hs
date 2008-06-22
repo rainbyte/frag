@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module ObjectBehavior (aicube, camera) where
 
 import Data.Maybe (fromJust)
@@ -13,7 +15,7 @@ import Parser
 ray ::
     (Double, Double, Double) ->
       (Double, Double, Double) -> ILKey -> ILKey -> Object
-ray (x, y, z) (vx, vy, vz) firedfrom iD
+ray (!x, !y, !z) (!vx, !vy, !vz) firedfrom iD
   = (arr
        (\ oi ->
           let clippedPos = oiCollisionPos oi in
