@@ -258,6 +258,9 @@ import Control.Monad (unless)
 import System.Random (RandomGen(..), Random(), randoms, randomRs)
 import Data.IORef
 import Control.Arrow
+import Control.Category
+import Prelude hiding (id,(.))
+import qualified Prelude 
 import AFRPDiagnostics
 import AFRPMiscellany (( # ), dup, swap)
 import AFRPEvent
@@ -358,9 +361,12 @@ freezeCol sfs dt = fmap (flip freeze dt) sfs
 -- Arrow instance and implementation
 ------------------------------------------------------------------------------
 
+instance Category SF where
+    g . f  = f `compPrim` g
+--    id  = Prelude.id
+
 instance Arrow SF where
     arr  = arrPrim
-    (>>>)  = compPrim
     first  = firstPrim
     second = secondPrim
     (***)  = parSplitPrim
