@@ -1,5 +1,5 @@
 Name:                frag
-Version:             1.1.1
+Version:             1.1.2
 License:             GPL
 License-file:        LICENSE
 Synopsis:            A 3-D First Person Shooter Game
@@ -83,7 +83,7 @@ data-files:          README,
 
 Executable frag
    Main-is:             Main.hs
-   Build-Depends:       base>=3, GLUT, OpenGL>=2.0, array, random
+   Build-Depends:       base==4.*, GLUT, OpenGL>=2.0, array, random
    Hs-source-dirs:      src
    Ghc-options:         -O2 -funbox-strict-fields -fvia-C -optc-O2
    Extensions:          BangPatterns,
