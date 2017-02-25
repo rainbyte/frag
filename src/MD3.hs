@@ -53,9 +53,10 @@ import Foreign
 import Foreign.C.Types
 import Foreign.C.String
 import System.IO hiding (withBinaryFile)
-import Control.Exception ( bracket )
+import Control.DeepSeq (force)
+import Control.Exception ( bracket, evaluate )
 import Textures
-import Data.HashTable
+import qualified Data.HashTable.IO as HT
 import Data.Maybe
 import Data.List
 import Data.Array
@@ -503,6 +504,7 @@ readMD3Header handle = do
 readMD3Skin :: FilePath -> IO [(String,String)]
 readMD3Skin filepath = withBinaryFile filepath $ \handle -> do
             contents <- hGetContents handle
+            evaluate $ force contents
             let filteredStr =  (words (replace contents))
             let files = findfiles (stripTags filteredStr)
             case (files == []) of
@@ -512,7 +514,7 @@ readMD3Skin filepath = withBinaryFile filepath $ \handle -> do
 stripTags :: [String] -> [String]
 stripTags [] = []
 stripTags (s:ss)
-                | (head (words(map (replace' ['_']) s))) == "tag" = stripTags ss
+                | (head (words(fmap (replace' ['_']) s))) == "tag" = stripTags ss
                 | otherwise = s:(stripTags ss)
 
 
@@ -525,8 +527,9 @@ stripTags (s:ss)
 readMD3Shader :: FilePath -> IO [String]
 readMD3Shader filepath = withBinaryFile filepath $ \handle -> do
    contents <- hGetContents handle
+   evaluate $ force contents
    let filteredStr =  (words (replace contents))
-   let files = map stripExt filteredStr
+   let files = fmap stripExt filteredStr
    case (files == []) of
          True -> return []
          False -> return files
@@ -539,7 +542,7 @@ readMD3Shader filepath = withBinaryFile filepath $ \handle -> do
 
 
 stripExt :: String -> String
-stripExt str = (head (words(map (replace' ['.']) str)))
+stripExt str = (head (words(fmap (replace' ['.']) str)))
 
 
 findfiles :: [String] -> [(String,String)]
@@ -547,7 +550,7 @@ findfiles [] = []
 findfiles (s:ss) = (s,(stripExt(stripPath (head ss)))):(findfiles (tail ss))
 
 replace :: String -> String
-replace str = map (replace' [',','\n','\r']) str
+replace str = fmap (replace' [',','\n','\r']) str
 
 replace' ::  [Char] -> Char -> Char
 replace' list char
@@ -557,7 +560,7 @@ replace' list char
 
 stripPath :: String -> String
 stripPath str = splitPath!!((length splitPath)-1)
-                where splitPath = (words (map (replace' ['/']) str))
+                where splitPath = (words (fmap (replace' ['/']) str))
 
 
 
@@ -568,19 +571,19 @@ stripPath str = splitPath!!((length splitPath)-1)
 
 readMD3Textures ::
    [FilePath] -> String ->
-         IO (HashTable String (Maybe TextureObject))
+         IO (HT.BasicHashTable String (Maybe TextureObject))
 readMD3Textures files dir = do
                 texs <- mapM readMD3Skin files
                 let texF = concat texs
-                let unqtex = nub (map snd texF)
-                textures <- mapM getAndCreateTexture (map (dir++) unqtex)
-                let nmobj = concat $ map (assoc texF) (zip unqtex textures)
-                fromList hashString nmobj
+                let unqtex = nub (fmap snd texF)
+                textures <- mapM getAndCreateTexture (fmap (dir++) unqtex)
+                let nmobj = concat $ fmap (assoc texF) (zip unqtex textures)
+                HT.fromList nmobj
 
 assoc ::
    [(String,String)] -> (String,Maybe TextureObject) ->
          [(String,Maybe TextureObject)]
-assoc list (c,d) = zip (map fst (filter ((c ==).snd) list)) (cycle[d])
+assoc list (c,d) = zip (fmap fst (Data.List.filter ((c ==).snd) list)) (cycle[d])
 
 
 
@@ -593,7 +596,7 @@ assoc list (c,d) = zip (map fst (filter ((c ==).snd) list)) (cycle[d])
 readModel :: String -> Model -> IO (Model)
 readModel modelname weaponModel = do
    hash <- readMD3Textures
-        (map (("tga/models/players/"++modelname)++)
+        (fmap (("tga/models/players/"++modelname)++)
            ["/head_default.skin",
             "/upper_default.skin",
             "/lower_default.skin"])
@@ -667,7 +670,7 @@ noAnims = do
 
 
 readMD3 :: FilePath ->
-   (HashTable String (Maybe TextureObject))->
+   (HT.BasicHashTable String (Maybe TextureObject))->
           [(String,(MD3Model,IORef(AnimState)))] -> IO MD3Model
 readMD3 filePath hashtable lns  = withBinaryFile filePath $ \handle -> do
                 header <- readMD3Header handle
@@ -676,14 +679,14 @@ readMD3 filePath hashtable lns  = withBinaryFile filePath $ \handle -> do
                 objs   <- readMeshes handle header hashtable
                 let splittedTags = splitTags (numTags header) tag
                 orderedlinks      <- scanTag lns tag
-                let trimmedTags  = trimTags (map fst orderedlinks) splittedTags
+                let trimmedTags  = trimTags (fmap fst orderedlinks) splittedTags
                 let trimmedArray = listArray (0,((length trimmedTags)-1)) trimmedTags
                 aux     <- newIORef (Nothing)
                 aux2 <- newIORef (Nothing)
                 return MD3Model {
                                  numOfTags    = numTags header,
                                  modelObjects = objs,
-                                 links      = (map snd orderedlinks),
+                                 links      = (fmap snd orderedlinks),
                                  auxFunc            = aux,
                                  auxFunc2     = aux2,
                                  tags       = trimmedArray
@@ -707,7 +710,7 @@ trimTags ::
           [[MD3Tag]] ->
                 [[((Float,Float,Float),(Float,Float,Float,Float))]]
 trimTags _ [] = []
-trimTags n (t:ts) = (map (getTagpos.(t!!)) n):(trimTags n ts)
+trimTags n (t:ts) = (fmap (getTagpos.(t!!)) n):(trimTags n ts)
    where getTagpos u = (tagPos u, rotation u)
 
 
@@ -737,12 +740,12 @@ readWeapon :: FilePath  -> FilePath -> IO MD3Model
 readWeapon filePath shader = withBinaryFile filePath $ \handle -> do
    header    <- readMD3Header handle
    weaponTex <- (readMD3Shader shader)
-   texObj    <- mapM getAndCreateTexture (map ("tga/models/weapons/"++) weaponTex)
+   texObj    <- mapM getAndCreateTexture (fmap ("tga/models/weapons/"++) weaponTex)
    readBones handle header
    readTags handle header
-   hash1           <- (fromList hashString [])
+   hash1 <- HT.fromList []
    objs    <- readMeshes handle header hash1
-   let objs2      = map attachTex (zip texObj objs)
+   let objs2      = fmap attachTex (zip texObj objs)
    let emptyList = listArray (0,0) []
    aux     <- newIORef (Nothing)
    aux2    <- newIORef (Nothing)
@@ -786,7 +789,7 @@ attachTex (texObj,object) =
 
 readMeshes ::
    Handle -> MD3Header ->
-         (HashTable String (Maybe TextureObject)) -> IO [MeshObject]
+         (HT.BasicHashTable String (Maybe TextureObject)) -> IO [MeshObject]
 readMeshes handle header hashTable= do
                  posn <- hTell handle
                  meshObjects <- readMeshData handle posn (numMeshes header) hashTable
@@ -795,7 +798,7 @@ readMeshes handle header hashTable= do
 
 readMeshData ::
    Handle -> Integer -> Int ->
-         (HashTable String (Maybe TextureObject)) -> IO [MeshObject]
+         (HT.BasicHashTable String (Maybe TextureObject)) -> IO [MeshObject]
 readMeshData handle posn meshesLeft hashTable
     | meshesLeft <= 0 = return []
     | otherwise = do
@@ -821,13 +824,13 @@ readMeshData handle posn meshesLeft hashTable
 
 convertMesh :: MD3MeshHeader ->
    [MD3Face] -> [MD3TexCoord] -> [MD3Vertex] ->
-          (HashTable String (Maybe TextureObject)) -> IO MeshObject
+          (HT.BasicHashTable String (Maybe TextureObject)) -> IO MeshObject
 convertMesh header faceIndex texcoords vertices hashTable = do
-    let verts           = map vert vertices
-    let scaledVerts = map devideBy64 verts
+    let verts           = fmap vert vertices
+    let scaledVerts = fmap devideBy64 verts
     let keyframes       = devideIntoKeyframes (numVertices  header) scaledVerts
 
-    imPTR <- mapM (Foreign.Marshal.Array.newArray) (map convertVert keyframes)
+    imPTR <- mapM (Foreign.Marshal.Array.newArray) (fmap convertVert keyframes)
     let facesArrayp = listArray (0,((length imPTR)-1)) imPTR
 
     uvs     <- convertTex faceIndex texcoords
@@ -859,7 +862,7 @@ convertMesh header faceIndex texcoords vertices hashTable = do
          arrayPointer TextureCoordArray $=
             VertexArrayDescriptor 2 Float 0 nullPtr-}
 
-    tex <- (Data.HashTable.lookup hashTable (strName header))
+    tex <- HT.lookup hashTable (strName header)
     return MeshObject {
             numOfVerts    = (length (head keyframes))*3,
             numOfFaces    = 3*(fromIntegral (numTriangles header)),
@@ -902,7 +905,7 @@ convertTex ::
                 IO [((Float,Float),(Float,Float),(Float,Float))]
 convertTex indces uvs = do
    let uvarray = listArray (0,((length uvs)-1)) uvs
-   let uv = map (getUVs uvarray) indces
+   let uv = fmap (getUVs uvarray) indces
    return uv
 
 
@@ -1111,11 +1114,11 @@ readAnimations filepath = withBinaryFile filepath $ \handle -> do
            lnes <- readLines handle
            animsl <- mapM readAnimation lnes
            let anms = concat animsl
-           let upperAnims = filter (matchPrefix "TORSO") anms
-           let lowerAnims = filter (matchPrefix "LEGS") anms
-           let bothAnims  = filter (matchPrefix "BOTH") anms
+           let upperAnims = Data.List.filter (matchPrefix "TORSO") anms
+           let lowerAnims = Data.List.filter (matchPrefix "LEGS") anms
+           let bothAnims  = Data.List.filter (matchPrefix "BOTH") anms
            let fixedLower =
-                   map (fixLower $ (startFrame $ head lowerAnims)-
+                   fmap (fixLower $ (startFrame $ head lowerAnims)-
                                             (startFrame $ head upperAnims)) lowerAnims
            return (listArray
                             (0,((length (bothAnims++upperAnims))-1))
@@ -1147,7 +1150,7 @@ readAnimation line
     | otherwise = do
                 return []
     where
-          replc str  = map (replace' ['/','\n','\r']) str
+          replc str  = fmap (replace' ['/','\n','\r']) str
           subStrings = (words (replc line))
 
 
@@ -1163,7 +1166,7 @@ fixLower offset anim = MD3Animation {
 
 matchPrefix :: String -> MD3Animation -> Bool
 matchPrefix prefix anim =
-   prefix == head (words (map (replace' ['_']) (animName anim)))
+   prefix == head (words (fmap (replace' ['_']) (animName anim)))
 
 
 readLines :: Handle -> IO [String]
@@ -1183,10 +1186,10 @@ withBinaryFile :: FilePath -> (Handle -> IO a) -> IO a
 withBinaryFile filePath = bracket (openBinaryFile filePath ReadMode) hClose
 
 toInts :: (Integral a)=>[a] -> [Int]
-toInts a = map fromIntegral a
+toInts a = fmap fromIntegral a
 
 toFloats :: (Real a) => [a] -> [Float]
-toFloats a = map realToFrac a
+toFloats a = fmap realToFrac a
 
 getInts :: Ptr a -> Int -> IO [Int]
 getInts ptr n = do ints <- peekArray n (castPtr ptr:: Ptr CInt)
@@ -1201,6 +1204,6 @@ getString ptr _ = do string <- peekCString (castPtr ptr :: Ptr CChar)
                      return string
 
 getPtrs :: Ptr a -> Int -> Int -> [Ptr a]
-getPtrs ptr lngth size= map ((plusPtr ptr).(size*)) [0.. (lngth-1)]
+getPtrs ptr lngth size= fmap ((plusPtr ptr).(size*)) [0.. (lngth-1)]
 
 

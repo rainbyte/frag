@@ -12,7 +12,7 @@ import Graphics.UI.GLUT
 import Textures
 import Data.Maybe
 import Data.Char
-import Data.HashTable
+import qualified Data.HashTable.IO as HT
 
 
 -- build a display list for the fonts
@@ -81,7 +81,7 @@ renderNum x y (DisplayList base) n = unsafePreservingMatrix $ do
    loadIdentity
    texture Texture2D $= Enabled
    alphaFunc $= Just (Greater,0.1:: Float)
-   let list = map toDList (show n)
+   let list = fmap toDList (show n)
    unsafePreservingMatrix $ do
       translate (Vector3 x y (0::Float))
       mapM_ callList list
@@ -101,7 +101,7 @@ printFonts' x y (fontTex,DisplayList _) st string =
       texture Texture2D $= Enabled
       textureBinding Texture2D $= fontTex
       translate (Vector3 x y (0::Float))
-      let lists = map (toDisplayList (128*(fromIntegral st))) string
+      let lists = fmap (toDisplayList (128*(fromIntegral st))) string
       alphaFunc $= Just (Greater,0.1:: Float)
       mapM_ callList lists --(map DisplayList [17..(32:: GLuint)])
       alphaFunc $= Nothing
@@ -122,9 +122,9 @@ setUpOrtho func = do
    matrixMode   $= Modelview 0
 
 -- just renders the crosshair
-renderCrosshair :: HashTable String (Maybe TextureObject) -> IO()
+renderCrosshair :: HT.BasicHashTable String (Maybe TextureObject) -> IO()
 renderCrosshair texs = do
-   Just  crosshairTex <- Data.HashTable.lookup texs "crosshair"
+   Just crosshairTex <- HT.lookup texs "crosshair"
    texture Texture2D $= Enabled
    textureBinding Texture2D $= crosshairTex
    unsafePreservingMatrix $ do

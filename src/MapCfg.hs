@@ -12,7 +12,7 @@ module MapCfg where
 import BSP
 import Camera
 import Control.Exception ( bracket )
-import Data.HashTable (HashTable,lookup,insert,fromList,hashString)
+import qualified Data.HashTable.IO as HT
 import Data.IORef
 import Data.List (find)
 import Data.Maybe
@@ -41,43 +41,43 @@ readMapCfg filepath = withBinaryFile filepath $ \handle -> do
    let objects  = map lines2ObjectCons lnes
    return $ map objectCons2IntermediateObjects objects
 
-readMapMedia :: FilePath -> IO (IORef BSPMap,(HashTable String Model))
+readMapMedia :: FilePath -> IO (IORef BSPMap,(HT.BasicHashTable String Model))
 readMapMedia filepath = withBinaryFile filepath $ \handle -> do
    lnes <- readLines handle
    print lnes
    let levelModels = lines2LevelModels lnes
    let (MMap lvlName) = head levelModels
    bsp <- readBSP lvlName
-   hash <- fromList hashString []
+   hash <- HT.fromList []
    mapM_ (readLevelModels hash) (tail levelModels)
    return (bsp,hash)
 
 
-readLevelModels :: HashTable String Model -> LevelModel -> IO ()
+readLevelModels :: HT.BasicHashTable String Model -> LevelModel -> IO ()
 readLevelModels hash (MWeapon name) =
    getWeaponModel hash name
 readLevelModels hash (MPlayerModel name weaponName) =
    getModel hash name weaponName
 
 
-getModel :: HashTable String Model -> String -> String -> IO ()
+getModel :: HT.BasicHashTable String Model -> String -> String -> IO ()
 getModel hash name weaponName = do
    getWeaponModel hash weaponName
-   Just weapon <- Data.HashTable.lookup hash weaponName
+   Just weapon <- HT.lookup hash weaponName
    model       <- readModel name weapon
-   insert hash name model
+   HT.insert hash name model
 
 
-getWeaponModel :: HashTable String Model -> String -> IO ()
+getWeaponModel :: HT.BasicHashTable String Model -> String -> IO ()
 getWeaponModel hash name = do
-   model <- Data.HashTable.lookup hash name
+   model <- HT.lookup hash name
    case model of
       Just _ -> return ()
       Nothing -> do
                 weaponModel <-
                   readWeaponModel
                     ("tga/models/weapons/"++name++".md3") ("tga/models/weapons/"++name++".shader")
-                insert hash name weaponModel
+                HT.insert hash name weaponModel
 
 
 readLines :: Handle -> IO [String]

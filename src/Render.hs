@@ -16,14 +16,14 @@ import Camera
 import Matrix
 import Frustum
 import BSP
-import Data.HashTable
+import qualified Data.HashTable.IO as HT
 import Visibility
 import TextureFonts
 
 data GameData = GameData {
                             gamemap        :: IORef(BSPMap),
-                            models         :: HashTable String Model,
-                            textures       :: HashTable String (Maybe TextureObject),
+                            models         :: HT.BasicHashTable String Model,
+                            textures       :: HT.BasicHashTable String (Maybe TextureObject),
                             camera         :: IORef(Camera),
                             lastDrawTime   :: IORef(Int),
                             lastDrawTime2  :: IORef(Int),
@@ -114,7 +114,7 @@ printLife font life
    where printf str = printFonts' 292 32 font 1 (str)
 
 
-renderObjects :: IORef(Camera) -> HashTable String Model ->
+renderObjects :: IORef(Camera) -> HT.BasicHashTable String Model ->
    Frustum -> BSPMap  -> ObsObjState -> IO()
 renderObjects camRef mdels frust mp oos
    | isRay oos        = renderRay oos
@@ -123,9 +123,9 @@ renderObjects camRef mdels frust mp oos
    | otherwise        = return ()
 
 
-renderGun :: Camera -> HashTable String Model -> IO()
+renderGun :: Camera -> HT.BasicHashTable String Model -> IO()
 renderGun cam mdels = do
-   Just weapon <- Data.HashTable.lookup mdels "railgun"
+   Just weapon <- HT.lookup mdels "railgun"
    let (x,y,z)    = cpos cam
    let (vx,vy,vz) = viewPos cam
    unsafePreservingMatrix $ do
@@ -209,7 +209,7 @@ renderProjectile (OOSProjectile {projectileOldPos = (x,y,z)}) = do
 
 
 renderEnemy ::
-  IORef(Camera) -> HashTable String Model ->
+  IORef(Camera) -> HT.BasicHashTable String Model ->
         Frustum -> BSPMap  -> ObsObjState -> IO()
 renderEnemy camRef mdels frust bspmap (OOSAICube {oosOldCubePos = (x,y,z),
                                                                             oosCubeSize = (sx,sy,sz),
@@ -241,7 +241,7 @@ renderEnemy camRef mdels frust bspmap (OOSAICube {oosOldCubePos = (x,y,z),
                            unsafePreservingMatrix $ do
                                  lineWidth $= 5.0
                                  translate (Vector3 x y z)
-                                 Just model <- Data.HashTable.lookup mdels name
+                                 Just model <- HT.lookup mdels name
                                  writeIORef (pitch model)
                                     (Just $ do
                                                     cullFace $=  Nothing

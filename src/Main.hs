@@ -25,7 +25,7 @@ import Camera
 import System.Exit (ExitCode(..), exitWith)
 import Matrix
 import MD3
-import Data.HashTable
+import qualified Data.HashTable.IO as HT
 import Frustum
 import Data.List (find)
 import Textures
@@ -89,7 +89,7 @@ createAWindow windowName level = do
    --read the BSP files and player models specified in the *.med files
    (mapRef,modls) <- readMapMedia (level ++ ".med")
 
-   listModels <- toList modls
+   listModels <- HT.toList modls
    animList   <- mapM getAnims listModels
 
    --complete the objects
@@ -100,11 +100,11 @@ createAWindow windowName level = do
    numbase <- buildBigNums
 
    --create a hashmap  for textures
-   texs <- fromList hashString []
+   texs <- HT.fromList []
 
    --create the crosshair
    crosshair <- getAndCreateTexture "crosshaira"
-   insert texs "crosshair" crosshair
+   HT.insert texs "crosshair" crosshair
 
    --set up the variables needed by our callbacks and game loop
    tme            <- get elapsedTime
@@ -253,9 +253,9 @@ render gd oos = do
 
 
 getPos :: [(Double,Double,Double)] -> [(Int,Int,Int)]
-getPos coords = map ints l
+getPos coords = fmap ints l
         where
-          l = map (vectorAdd (0,90,0)) coords
+          l = fmap (vectorAdd (0,90,0)) coords
           ints (x,y,z)= (truncate x,truncate y,truncate z)
 
 
