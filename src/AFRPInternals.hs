@@ -19,7 +19,7 @@
 -- insulated against such changes.
 
 module AFRPInternals (
-    Event(..)		-- The event type, its constructors, and instances.
+    Event(..)   -- The event type, its constructors, and instances.
 ) where
 
 import AFRPEvent
@@ -32,6 +32,6 @@ import AFRPEvent
 instance Show a => Show (Event a) where
     showsPrec _ NoEvent   = showString "NoEvent"
     showsPrec d (Event a) = showParen (d >= 10)
-				      (showString "Event " . showsPrec 10 a)
+                                      (showString "Event " . showsPrec 10 a)
 
 
