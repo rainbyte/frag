@@ -363,7 +363,7 @@ freezeCol sfs dt = fmap (flip freeze dt) sfs
 
 instance Category SF where
     g . f  = f `compPrim` g
---    id  = Prelude.id
+    id = identity
 
 instance Arrow SF where
     arr  = arrPrim

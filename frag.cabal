@@ -85,7 +85,7 @@ Executable frag
    Main-is:             Main.hs
    Build-Depends:       base==4.*, GLUT, OpenGL>=2.0, array, deepseq, hashtables, random
    Hs-source-dirs:      src
-   Ghc-options:         -O2 -funbox-strict-fields -fvia-C -optc-O2
+   Ghc-options:         -O2 -funbox-strict-fields -optc-O2
    Extensions:          BangPatterns,
                         FunctionalDependencies,
                         FlexibleInstances,
