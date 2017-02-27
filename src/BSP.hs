@@ -231,7 +231,7 @@ data BSPPlane = BSPPlane {
 -------------------------------------------------------------------------------
 --BSP rendering
 
-renderBSP :: IORef(BSPMap) -> (Double,Double,Double)-> IO()
+renderBSP :: IORef BSPMap -> (Double, Double, Double) -> IO()
 renderBSP mapRef (x,y,z) = do
    activeTexture $= TextureUnit 0
    clientActiveTexture $= TextureUnit 0
@@ -270,7 +270,7 @@ renderBSP' leaf mp = do
    frstm <- getFrustum
    mapM_ (renderLeaves frstm newbs visFunc mp) (leaves mp)
    renderBSPCleanUp
-       where visFunc = (isClusterVisible (visData mp) (cluster leaf))
+       where visFunc = isClusterVisible (visData mp) (cluster leaf)
 
 
 -- we have to reset the openGL state after rendering
@@ -290,11 +290,9 @@ renderLeaves ::
    Frustum -> BitSet -> (Int -> IO Bool) -> BSPMap -> BSPLeaf -> IO()
 renderLeaves  frstm bitSet func mp leaf  = do
    clusterVisible <- func (cluster leaf)
-   case (clusterVisible) of
-      True -> case ((boxInFrustum frstm (leafMin leaf) (leafMax leaf))) of
-         True -> renderFaces bitSet mp (leafFaces leaf)
-         _ -> return ()
-      _   -> return()
+   when clusterVisible $
+      when (boxInFrustum frstm (leafMin leaf) (leafMax leaf)) $
+         renderFaces bitSet mp (leafFaces leaf)
 
 
 -- is an object visible
@@ -302,20 +300,17 @@ isObjectVisible :: BSPMap -> Vec3 -> Vec3 -> IO Bool
 isObjectVisible bsp (x,y,z) (ox,oy,oz) = do
    currentLeaf <- findLeaf (x,y,z) (tree bsp)
    objectLeaf  <- findLeaf (ox,oy,oz) (tree bsp)
-   isVis   <- isClusterVisible
+   isClusterVisible
      (visData bsp) (cluster currentLeaf) (cluster objectLeaf)
-   return (isVis)
 
 isClusterVisible ::Maybe BSPVisData -> Int -> Int -> IO Bool
 isClusterVisible (Just visdata) current target
-    | current < 0 = do
-     return True
-    | target  < 0 = do
-     return False
-    | otherwise   = do
+    | current < 0 = return True
+    | target  < 0 = return False
+    | otherwise   =
      Arr.readArray
        (bitSets visdata)
-          (((bytesPerCluster visdata)*current*8) + target)
+          ((bytesPerCluster visdata*current*8) + target)
 isClusterVisible _ _ _ = return False
 
 renderFaces :: BitSet -> BSPMap -> [BSPFace] -> IO()
@@ -349,15 +344,15 @@ renderPolygonFace face (_,_,_,_,_) _ =  do
    clientActiveTexture $= TextureUnit 0
    arrayPointer TextureCoordArray $=
       VertexArrayDescriptor 2 Float 0 b
-   textureBinding Texture2D $= (textureObj face)
+   textureBinding Texture2D $= textureObj face
 
    activeTexture $= TextureUnit 1
    clientActiveTexture $= TextureUnit 1
    arrayPointer TextureCoordArray $=
       VertexArrayDescriptor 2 Float 0 c
-   textureBinding Texture2D $= (lightmapObj face)
+   textureBinding Texture2D $= lightmapObj face
 
-   drawRangeElements Triangles (0,(numOfIndices face))
+   drawRangeElements Triangles (0, numOfIndices face)
       (numOfIndices face) UnsignedInt d
    --drawElements Triangles (numOfIndices face) UnsignedInt d
 
@@ -365,36 +360,36 @@ renderPolygonFace face (_,_,_,_,_) _ =  do
 -- renders a mesh face
 renderMeshFace :: BSPFace -> VertexArrays -> Ptr GLint -> IO ()
 renderMeshFace face (vertexPtr,texturePtr,c,_,_)  vIndex =  do
-   startVIndex <- return (startVertIndex face)
+   let startVIndex = startVertIndex face
    arrayPointer VertexArray $=
       VertexArrayDescriptor 3 Float 0
-         (plusPtr vertexPtr (12*(startVIndex)))
+         (plusPtr vertexPtr (12 * startVIndex))
    clientState VertexArray  $= Enabled
 
    activeTexture $= TextureUnit 0
    clientActiveTexture $= TextureUnit 0
    arrayPointer TextureCoordArray $=
       VertexArrayDescriptor 2 Float 0
-         (advancePtr texturePtr (2*(startVertIndex face)))
+         (advancePtr texturePtr (2 * startVertIndex face))
    clientState TextureCoordArray $= Enabled
    texture Texture2D $= Enabled
-   textureBinding Texture2D $= (textureObj face)
+   textureBinding Texture2D $= textureObj face
 
    activeTexture $= TextureUnit 1
    clientActiveTexture $= TextureUnit 1
    arrayPointer TextureCoordArray $=
-      VertexArrayDescriptor 2 Float 0 (plusPtr c (8*(startVIndex)))
+      VertexArrayDescriptor 2 Float 0 (plusPtr c (8 * startVIndex))
    clientState TextureCoordArray $= Enabled
    texture Texture2D $= Enabled
-   textureBinding Texture2D $= (lightmapObj face)
+   textureBinding Texture2D $= lightmapObj face
 
    drawRangeElements Triangles (0,fromIntegral (numOfVerts face))
-      (numOfIndices face ) UnsignedInt (plusPtr vIndex (4*(startIndex face)))
+      (numOfIndices face ) UnsignedInt (plusPtr vIndex (4 * startIndex face))
 
 
 -- renders patch surfaces
 renderPatches :: BSPFace -> IO()
-renderPatches face = do
+renderPatches face =
    mapM_ (renderPatch face) (patch face)
 
 
@@ -410,7 +405,7 @@ renderPatch face bsppatch=  do
       VertexArrayDescriptor 2 Float 28 (plusPtr (patchPtr bsppatch) 12)
    clientState TextureCoordArray $= Enabled
    texture Texture2D $= Enabled
-   textureBinding Texture2D $= (textureObj face)
+   textureBinding Texture2D $= textureObj face
 
    activeTexture $= TextureUnit 1
    clientActiveTexture $= TextureUnit 1
@@ -418,7 +413,7 @@ renderPatch face bsppatch=  do
       VertexArrayDescriptor 2 Float 28 (plusPtr (patchPtr bsppatch) 20)
    clientState TextureCoordArray $= Enabled
    texture Texture2D $= Enabled
-   textureBinding Texture2D $= (lightmapObj face)
+   textureBinding Texture2D $= lightmapObj face
 
    multiDrawElements TriangleStrip (numIndexPtr bsppatch)
       UnsignedInt (indexPtrPtr bsppatch)
@@ -430,11 +425,11 @@ renderPatch face bsppatch=  do
 -- reading functions
 
 -- reads a BSP file
-readBSP :: FilePath -> IO(IORef(BSPMap))
+readBSP :: FilePath -> IO (IORef BSPMap)
 readBSP filePath = withBinaryFile filePath $ \handle -> do
    readHeader handle
    lumps           <- mapM (readLump handle)
-                        [ 0 .. (kMaxLumps -1)] :: IO [BSPLump]
+                        [ 0 .. kMaxLumps - 1] :: IO [BSPLump]
    (a,b,c,d,e)     <- readVertices handle lumps
    indcs           <- readIndices  handle lumps
    newbitset       <- createBitset lumps
@@ -443,37 +438,35 @@ readBSP filePath = withBinaryFile filePath $ \handle -> do
    newNodes        <- readNodes handle lumps
    newLeaves       <- readLeaves handle lumps newVertexArrays indexPtr
    newVisData      <- readVisData handle lumps
-   let leafArray = listArray (0,((length newLeaves)-1)) newLeaves
-   let nodeArray = listArray (0,((length newNodes)-1)) newNodes
+   let leafArray = listArray (0,length newLeaves - 1) newLeaves
+   let nodeArray = listArray (0,length newNodes - 1) newNodes
    ntree <- constructTree nodeArray leafArray 0
-   bsp <-  (newIORef ( BSPMap  {
+   newIORef BSPMap {
                           vertexData = newVertexArrays,
                           vindices   = indexPtr,
-                          leaves     = (reverse newLeaves),
+                          leaves     = reverse newLeaves,
                           tree       = ntree,
                           visData    = newVisData,
                           bitset     = newbitset
-   }))
-   return bsp
+   }
 
-constructTree :: Array Int BSPNode -> Array Int BSPLeaf -> Int -> IO(Tree)
-constructTree nodes lvs ind = do
-   case (ind >= 0) of
-      True  -> do
-         let currentNode = (nodes ! ind)
+constructTree :: Array Int BSPNode -> Array Int BSPLeaf -> Int -> IO Tree
+constructTree nodes lvs ind =
+   if ind >= 0
+      then do
+         let currentNode = nodes ! ind
          leftNode  <- constructTree nodes lvs (front currentNode)
          rightNode <- constructTree nodes lvs (back currentNode)
          return (Branch currentNode leftNode rightNode)
-      False -> do
-         let currentLeaf = (lvs ! ((-1)*(ind+1)))
+      else do
+         let currentLeaf = lvs ! ((-1) * (ind + 1))
          return (Leaf currentLeaf)
 
 
 createBitset :: [BSPLump] -> IO BitSet
 createBitset lumps = do
-   (_,lngth) <- (getLumpData (lumps !! kFaces))
-   newbitset  <- emptyBS (lngth `div` 104)
-   return newbitset
+   (_,lngth) <- getLumpData (lumps !! kFaces)
+   emptyBS (lngth `div` 104)
 
 
 
@@ -488,11 +481,11 @@ readHeader handle = do
    hGetBuf handle buf 4
    iD <- mapM (peekByteOff buf) [ 0 ..  3] :: IO [CChar]
    hGetBuf handle buf cIntSize
-   ver <- (peek (castPtr buf :: Ptr CInt)) :: IO CInt
+   ver <- peek (castPtr buf :: Ptr CInt) :: IO CInt
    free buf
-   return (BSPHeader {
+   return BSPHeader {
               strID   = map castCCharToChar iD,
-              version = (fromIntegral ver)})
+              version = fromIntegral ver}
 
 
 
@@ -504,12 +497,12 @@ readLump :: Handle -> Int -> IO BSPLump
 readLump handle _ = do
    buf  <- mallocBytes cIntSize
    hGetBuf handle buf cIntSize
-   offs <- (peek (castPtr buf :: Ptr CInt)) :: IO CInt
+   offs <- peek (castPtr buf :: Ptr CInt) :: IO CInt
    hGetBuf handle buf cIntSize
-   l    <- (peek (castPtr buf :: Ptr CInt)) :: IO CInt
+   l    <- peek (castPtr buf :: Ptr CInt) :: IO CInt
    free buf
-   return (BSPLump {offset = (fromIntegral offs),
-                    len    = (fromIntegral l)})
+   return BSPLump { offset = fromIntegral offs
+                  , len    = fromIntegral l }
 
 getLumpData :: BSPLump -> IO (Int, Int)
 getLumpData lump = return (offset lump,len lump)
@@ -520,13 +513,12 @@ getLumpData lump = return (offset lump,len lump)
 readNodes :: Handle -> [BSPLump] -> IO [BSPNode]
 readNodes handle lumps = do
    planes <- readPlanes handle lumps
-   let planeArray = listArray (0,((length planes)-1)) planes
-   (offst,lngth) <- (getLumpData (lumps !! kNodes))
+   let planeArray = listArray (0, length planes - 1) planes
+   (offst,lngth) <- getLumpData (lumps !! kNodes)
    offs <- getOffsets lngth offst 36
-   nodes <- mapM (readNode handle planeArray) offs
-   return  nodes
+   mapM (readNode handle planeArray) offs
 
-readNode :: Handle -> Array Int BSPPlane -> Int -> IO (BSPNode)
+readNode :: Handle -> Array Int BSPPlane -> Int -> IO BSPNode
 readNode handle planeArray offst = do
    hSeek handle AbsoluteSeek (fromIntegral offst)
    buf <- mallocBytes 4
@@ -541,10 +533,10 @@ readNode handle planeArray offst = do
    bck  <- getCInt
    nMin <- get3Ints
    nMax <- get3Ints
-   let pln = planeArray ! (fromIntegral plnIndex)
-   return $ BSPNode {
-               planeNormal = (pNormal pln),
-               dist        = (distance pln),
+   let pln = planeArray ! fromIntegral plnIndex
+   return BSPNode {
+               planeNormal = pNormal pln,
+               dist        = distance pln,
                front       = fromIntegral frt,
                back        = fromIntegral bck,
                nodeMin     = nMin,
@@ -559,7 +551,7 @@ readNode handle planeArray offst = do
 
 readPlanes :: Handle -> [BSPLump] -> IO [BSPPlane]
 readPlanes handle lumps = do
-   (offst,lngth) <- (getLumpData (lumps !! kPlanes))
+   (offst,lngth) <- getLumpData (lumps !! kPlanes)
    hSeek handle AbsoluteSeek (fromIntegral offst)
    buf <- mallocBytes lngth
    hGetBuf handle buf lngth
@@ -568,14 +560,14 @@ readPlanes handle lumps = do
    free buf
    return planes
 
-readPlane :: Ptr a -> IO (BSPPlane)
+readPlane :: Ptr a -> IO BSPPlane
 readPlane ptr = do
    [e1,e2,e3,e4] <- getFloats ptr 4
-   return $ BSPPlane {
+   return BSPPlane {
         pNormal  = (fromRational (toRational e1),
            fromRational (toRational e3),
            fromRational (toRational ((-1)*e2))),
-        distance = (fromRational (toRational e4))
+        distance = fromRational (toRational e4)
    }
 
 
@@ -587,13 +579,13 @@ readPlane ptr = do
 readLeaves :: Handle -> [BSPLump] -> VertexArrays -> Ptr GLint -> IO [BSPLeaf]
 readLeaves handle lumps vertArrays indcs = do
    faces              <- readFaces handle lumps vertArrays  indcs
-   let faceArray      =  listArray (0,((length faces)-1))  faces
+   let faceArray      =  listArray (0, length faces - 1)  faces
    leaffaces          <- readLeafFaces handle lumps
-   let leafFaceArray  =  listArray (0,((length leaffaces)-1)) leaffaces
+   let leafFaceArray  =  listArray (0, length leaffaces - 1) leaffaces
    brushes            <- readBrushes handle lumps
-   let brushArray     =  listArray (0,((length brushes)-1)) brushes
+   let brushArray     =  listArray (0, length brushes - 1) brushes
    leafbrushes        <- readLeafBrushes handle lumps
-   let leafBrushArray =  listArray (0,((length leafbrushes)-1)) leafbrushes
+   let leafBrushArray =  listArray (0, length leafbrushes - 1) leafbrushes
    (offst,lngth)    <- getLumpData (lumps !! kLeafs)
    hSeek handle AbsoluteSeek (fromIntegral offst)
    buf <- mallocBytes lngth
@@ -607,14 +599,14 @@ readLeaves handle lumps vertArrays indcs = do
 
 readLeaf ::
    Array Int Int -> Array Int BSPFace ->
-      Array Int Int -> Array Int BSPBrush ->Ptr a ->IO (BSPLeaf)
+      Array Int Int -> Array Int BSPBrush ->Ptr a ->IO BSPLeaf
 readLeaf leafFaceArray faceArray leafBrushArray brushArray ptr = do
    [e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12] <- getInts ptr 12
    let leafIndices  = map (leafFaceArray !) [((e9+e10)-1),((e9+e10)-2)..e9]
    let faceList     = map (faceArray !) leafIndices
    let brushIndices = map (leafBrushArray !) [e11..(e11+e12-1)]
    let brushList    = map (brushArray !) brushIndices
-   return $ BSPLeaf {
+   return BSPLeaf {
         cluster          = e1,
         area             = e2,
         leafMin          = (realToFrac e3,
@@ -641,21 +633,20 @@ readLeaf leafFaceArray faceArray leafBrushArray brushArray ptr = do
 readFaces :: Handle -> [BSPLump] -> VertexArrays -> Ptr GLint -> IO [BSPFace]
 readFaces handle lumps vertArrays indcs = do
    lightMaps         <- readLightMaps handle lumps
-   let lightMapArray =  listArray (0,((length lightMaps)-1)) lightMaps
+   let lightMapArray =  listArray (0, length lightMaps - 1) lightMaps
    texInfos          <- readTexInfos handle lumps
-   texFileNames      <- return (map strName texInfos)
+   let texFileNames  = map strName texInfos
    texObjs           <- getAndCreateTextures texFileNames
-   let texObjArray   =  listArray (0,((length texObjs)-1)) texObjs
-   (offst,lngth)   <- (getLumpData (lumps !! kFaces))
+   let texObjArray   =  listArray (0, length texObjs - 1) texObjs
+   (offst,lngth)   <- getLumpData (lumps !! kFaces)
    offs              <- getOffsets lngth offst 104
-   faces             <- mapM
+   mapM
      (readFace handle offst lightMapArray texObjArray vertArrays indcs) offs
-   return  faces
 
 
 readFace ::
   Handle -> Int -> Array Int TextureObject -> Array Int (Maybe TextureObject)->
-     VertexArrays -> Ptr GLint -> Int ->  IO (BSPFace)
+     VertexArrays -> Ptr GLint -> Int ->  IO BSPFace
 readFace handle origin  lightmaps textures
   vertArrays@(a1,b1,c1,_,_) indcs offst = do
    hSeek handle AbsoluteSeek (fromIntegral offst)
@@ -709,7 +700,7 @@ readFace handle origin  lightmaps textures
 
 readLeafFaces :: Handle -> [BSPLump] -> IO [BSPLeafFace]
 readLeafFaces handle lumps = do
-   (offst,lngth) <- (getLumpData (lumps !! kLeafFaces))
+   (offst,lngth) <- getLumpData (lumps !! kLeafFaces)
    hSeek handle AbsoluteSeek (fromIntegral offst)
    buf <- mallocBytes lngth
    hGetBuf handle buf lngth
@@ -723,29 +714,29 @@ readLeafFaces handle lumps = do
 readBrushes :: Handle -> [BSPLump] -> IO [BSPBrush]
 readBrushes handle lumps = do
    brushsides         <- readBrushSides handle lumps
-   let brushSideArray =  listArray (0,((length brushsides)-1)) brushsides
+   let brushSideArray =  listArray (0, length brushsides - 1) brushsides
    texInfos           <- readTexInfos handle lumps
-   let texInfoArray   =  listArray (0,((length texInfos)-1)) texInfos
-   (offst,lngth)    <- (getLumpData (lumps !! kBrushes))
+   let texInfoArray   =  listArray (0, length texInfos - 1) texInfos
+   (offst,lngth)    <- getLumpData (lumps !! kBrushes)
    hSeek handle AbsoluteSeek (fromIntegral offst)
-   buf                <- mallocBytes (lngth)
-   hGetBuf handle buf (lngth)
-   let ptrs           = getPtrs buf (lngth) 12
+   buf                <- mallocBytes lngth
+   hGetBuf handle buf lngth
+   let ptrs           = getPtrs buf lngth 12
    brushes            <- mapM (readBrush brushSideArray texInfoArray) ptrs
    free buf
    return brushes
 
 readBrush ::  Array Int BSPBrushSide ->
-   Array Int BSPTexInfo -> Ptr a ->IO (BSPBrush)
+   Array Int BSPTexInfo -> Ptr a ->IO BSPBrush
 readBrush brushSideArray texInfos ptr = do
    [e1,e2,e3] <- getInts ptr 3
    let bSides = map (brushSideArray !) [e1..(e1+e2-1)]
-   return $ BSPBrush {
+   return BSPBrush {
       brushSide        = e1,
       numOfBrushSides  = e2,
       brushSides       = bSides,
       bTextureID       = e3,
-      textureType      = (contents (texInfos ! e3))
+      textureType      = contents (texInfos ! e3)
    }
 
 
@@ -757,24 +748,24 @@ readBrush brushSideArray texInfos ptr = do
 readBrushSides :: Handle -> [BSPLump] -> IO [BSPBrushSide]
 readBrushSides handle lumps = do
    planes          <- readPlanes handle lumps
-   let planeArray  =  listArray (0,((length planes)-1)) planes
-   (offst,lngth) <- (getLumpData (lumps !! kBrushSides))
+   let planeArray  =  listArray (0, length planes - 1) planes
+   (offst,lngth) <- getLumpData (lumps !! kBrushSides)
    hSeek handle AbsoluteSeek (fromIntegral offst)
-   buf             <- mallocBytes (lngth)
-   hGetBuf handle buf (lngth)
-   let ptrs        =  getPtrs buf (lngth) 8
+   buf             <- mallocBytes lngth
+   hGetBuf handle buf lngth
+   let ptrs        =  getPtrs buf lngth 8
    brushsides      <- mapM (readBrushSide planeArray) ptrs
    free buf
    return brushsides
 
-readBrushSide ::  Array Int BSPPlane -> Ptr a ->IO (BSPBrushSide)
+readBrushSide ::  Array Int BSPPlane -> Ptr a ->IO BSPBrushSide
 readBrushSide planeArray ptr = do
    [e1,e2] <- getInts ptr 2
-   let pln = planeArray ! (fromIntegral e1)
-   return $ BSPBrushSide {
+   let pln = planeArray ! fromIntegral e1
+   return BSPBrushSide {
       bsPlane     = e1,
-      bsPlaneNorm = (pNormal pln),
-      bsPlaneDist = (distance pln),
+      bsPlaneNorm = pNormal pln,
+      bsPlaneDist = distance pln,
       bsTextureID = e2
    }
 
@@ -783,7 +774,7 @@ readBrushSide planeArray ptr = do
 
 readLeafBrushes :: Handle -> [BSPLump] -> IO [BSPLeafFace]
 readLeafBrushes handle lumps = do
-   (offst,lngth) <- (getLumpData (lumps !! kLeafBrushes))
+   (offst,lngth) <- getLumpData (lumps !! kLeafBrushes)
    hSeek handle AbsoluteSeek (fromIntegral offst)
    buf <- mallocBytes lngth
    hGetBuf handle buf lngth
@@ -796,7 +787,7 @@ readLeafBrushes handle lumps = do
 
 readVisData :: Handle -> [BSPLump] -> IO (Maybe BSPVisData)
 readVisData handle lumps = do
-   (offst,lngth) <- (getLumpData (lumps !! kVisData))
+   (offst,lngth) <- getLumpData (lumps !! kVisData)
    case lngth of
      0  -> return Nothing
      _  -> do
@@ -807,7 +798,7 @@ readVisData handle lumps = do
         let [numC, bytesPerC] = toInts cInts
         bitst <- peekArray (numC*bytesPerC) $ plusPtr (castPtr buf :: Ptr Word8) 8
         bs <-
-           Arr.newListArray (0 ,(numC*bytesPerC*8-1)) (toBools bitst)
+           Arr.newListArray (0, numC * bytesPerC * 8 - 1) (toBools bitst)
         return (Just BSPVisData {
                         numOfClusters   = numC,
                         bytesPerCluster = bytesPerC,
@@ -838,7 +829,7 @@ readVertex handle offst = do
           getAndPeeks handle (castPtr buf :: Ptr CFloat) (undefined :: CFloat)
    let getWord8s  =
           getAndPeeks handle (castPtr buf :: Ptr Word8) (undefined :: Word8)
-   let floats = (getCFloats 3)
+   let floats = getCFloats 3
    let get3Floats = fmap get3t floats
    (x,y,z)        <- get3Floats
    texCoords      <- getCFloats 2
@@ -850,11 +841,11 @@ readVertex handle offst = do
 
 dataToPointers :: VertexData -> IO VertexArrays
 dataToPointers (a,b,c,d,e) = do
-   a1 <- (newArray a)
-   b1 <- (newArray b)
-   c1 <- (newArray c)
-   d1 <- (newArray d)
-   e1 <- (newArray e)
+   a1 <- newArray a
+   b1 <- newArray b
+   c1 <- newArray c
+   d1 <- newArray d
+   e1 <- newArray e
    return (a1,b1,c1,d1,e1)
 
 seperateArrays :: [([CFloat],[CFloat],[CFloat],[CFloat],[Word8])] ->
@@ -873,7 +864,7 @@ toVertexData (a,b,c,d,e) = (toFloats a,toFloats b,toFloats c,toFloats d,e)
 
 readLightMaps :: Handle -> [BSPLump] -> IO [TextureObject]
 readLightMaps handle lumps = do
-   (offst,lngth) <- (getLumpData (lumps !! kLightmaps))
+   (offst,lngth) <- getLumpData (lumps !! kLightmaps)
    offs <- getOffsets lngth offst 49152
    mapM (readLightMap handle) offs
 
@@ -882,9 +873,8 @@ readLightMap handle offst = do
    hSeek handle AbsoluteSeek (fromIntegral offst)
    buf <- mallocBytes 49152 :: IO (Ptr Word8)
    hGetBuf handle buf 49152
-   mapM (adjustRGB buf 5.0) [0..((16384)-1)]
-   texObj <-createLightmapTexture buf
-   return texObj
+   mapM_ (adjustRGB buf 5.0) [0..(16384 - 1)]
+   createLightmapTexture buf
 
 createLightmapTexture :: Ptr Word8 -> IO TextureObject
 createLightmapTexture ptr = do
@@ -935,17 +925,17 @@ fixLightmap ind arr
 
 readTexInfos :: Handle -> [BSPLump] -> IO [BSPTexInfo]
 readTexInfos handle lumps = do
-   (offst,lngth) <- (getLumpData (lumps !! kTextures))
+   (offst,lngth) <- getLumpData (lumps !! kTextures)
    offs <- getOffsets lngth offst 72
    mapM (readTexInfo handle) offs
 
-readTexInfo :: Handle -> Int -> IO (BSPTexInfo)
+readTexInfo :: Handle -> Int -> IO BSPTexInfo
 readTexInfo handle offst = do
    hSeek handle AbsoluteSeek (fromIntegral offst)
    buf <- mallocBytes 64 :: IO (Ptr CChar)
    hGetBuf handle buf 64
    str <- peekCAString buf
-   hSeek handle AbsoluteSeek ((fromIntegral offst) + 64)
+   hSeek handle AbsoluteSeek (fromIntegral offst + 64)
    let getCInt =
          getAndPeek handle (castPtr buf :: Ptr CInt) (undefined :: CInt)
    flgs <- getCInt
@@ -953,8 +943,8 @@ readTexInfo handle offst = do
    free buf
    return BSPTexInfo {
       strName  = str,
-      flags  = (fromIntegral flgs),
-      contents = (fromIntegral cons)
+      flags  = fromIntegral flgs,
+      contents = fromIntegral cons
     }
 
 
@@ -966,7 +956,7 @@ readTexInfo handle offst = do
 
 readIndices :: Handle -> [BSPLump] -> IO [GLint]
 readIndices handle lumps = do
-   (offst,lngth) <- (getLumpData (lumps !! kIndices))
+   (offst,lngth) <- getLumpData (lumps !! kIndices)
    hSeek handle AbsoluteSeek (fromIntegral offst)
    buf   <- mallocBytes lngth
    hGetBuf handle buf lngth
@@ -984,10 +974,9 @@ readIndices handle lumps = do
 getAndPeek :: (Storable a, Typeable a) => Handle -> Ptr a -> a -> IO a
 getAndPeek handle buf be = do
    bytesRead <- hGetBuf handle buf (sizeOf be)
-   when (bytesRead /= (sizeOf be)) $
+   when (bytesRead /= sizeOf be) $
       ioError $ mkIOError eofErrorType "hGetBufFully" (Just handle) Nothing
-   val <- (peek buf)
-   return val
+   peek buf
 
 getAndPeeks :: (Storable a, Typeable a) =>
    Handle -> Ptr a -> a -> Int -> IO [a]
@@ -1001,10 +990,10 @@ getOffsets :: Int -> Int -> Int -> IO [Int]
 getOffsets lngth off sze = return $ map ((off+) . (sze*)) [0.. ((lngth `div` sze)-1)]
 
 toInts :: (Integral a)=>[a] -> [Int]
-toInts a = map fromIntegral a
+toInts = map fromIntegral
 
 toFloats :: (Real a) => [a] -> [Float]
-toFloats a = map realToFrac a
+toFloats = map realToFrac
 
 get2t :: [a] -> (a, a)
 get2t list = (list !! 0, list !! 1)
@@ -1030,9 +1019,9 @@ getFloats ptr n = do
    return $ toFloats floats
 
 cIntSize :: Int
-cIntSize = (sizeOf (undefined :: CInt))
+cIntSize = sizeOf (undefined :: CInt)
 
 getPtrs :: Ptr a -> Int -> Int -> [Ptr a]
-getPtrs ptr lngth sze = map ((plusPtr ptr) . (sze *)) [0.. ((lngth `div` sze) - 1)]
+getPtrs ptr lngth sze = map (plusPtr ptr . (sze *)) [0.. ((lngth `div` sze) - 1)]
 
 
