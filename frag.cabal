@@ -82,13 +82,57 @@ data-files:          README,
      tga/textures/gothic_block/blocks18b.tga
 
 Executable frag
-   Main-is:             Main.hs
-   Build-Depends:       base==4.*, GLUT, OpenGL>=2.0, array, deepseq, hashtables, random
-   Hs-source-dirs:      src
-   Ghc-options:         -O2 -funbox-strict-fields -optc-O2
-   Extensions:          BangPatterns,
-                        FunctionalDependencies,
-                        FlexibleInstances,
-                        MultiParamTypeClasses,
-                        TypeOperators,
-                        Rank2Types
+   Main-is:        Main.hs
+   Build-Depends:  base==4.*
+                 , GLUT
+                 , OpenGL >= 2.0
+                 , array
+                 , deepseq
+                 , hashtables
+                 , random
+   Hs-source-dirs: src
+   Ghc-options:    -O2 -funbox-strict-fields -optc-O2
+   Extensions:     BangPatterns
+                 , FunctionalDependencies
+                 , FlexibleInstances
+                 , MultiParamTypeClasses
+                 , TypeOperators
+                 , Rank2Types
+   other-modules:  AFRP
+                 , AFRPAffineSpace
+                 , AFRPDiagnostics
+                 , AFRPEvent
+                 , AFRPForceable
+                 , AFRPGeometry
+                 , AFRPInternals
+                 , AFRPMiscellany
+                 , AFRPPoint2
+                 , AFRPPoint3
+                 , AFRPUtilities
+                 , AFRPVector2
+                 , AFRPVector3
+                 , AFRPVectorSpace
+                 , BitSet
+                 , BSP
+                 , Camera
+                 , Collision
+                 , Command
+                 , Curves
+                 , Frustum
+                 , Game
+                 , HGL
+                 , IdentityList
+                 , MD3
+                 , MapCfg
+                 , Matrix
+                 , Object
+                 , ObjectBehavior
+                 , Parser
+                 , PhysicalDimensions
+                 , Quaternion
+                 , Raybox
+                 , Render
+                 , TGA
+                 , TextureFonts
+                 , Textures
+                 , Visibility
