@@ -19,9 +19,9 @@ data Camera = Camera {cpos      :: !(Double,Double,Double),
 -- initialise a camera
 initCamera ::(Real a) => (a, a, a)-> (a, a, a) -> (a, a, a) -> Camera
 initCamera  (a,b,c) (d,e,f) (g,h,i) =
-   Camera {cpos    = ((realToFrac a),(realToFrac b),(realToFrac c)),
-           viewPos = ((realToFrac d),(realToFrac e),(realToFrac f)),
-           upVec   = ((realToFrac g),(realToFrac h),(realToFrac i))}
+   Camera {cpos    = (realToFrac a, realToFrac b, realToFrac c),
+           viewPos = (realToFrac d, realToFrac e, realToFrac f),
+           upVec   = (realToFrac g, realToFrac h, realToFrac i)}
 
 
 -- convert from a tuple of doubles to an OpenGL vector
@@ -45,12 +45,12 @@ cameraLook camera = do
 -- sets the view vector of the camera based on the displacement
 -- of the cursor from the center of the screent. Hardcoded to
 -- work at resolutions of 640x480
-setView :: (Position2, Camera) -> (Camera)
-setView ((P.Point2 x y),cam) =
+setView :: (Position2, Camera) -> Camera
+setView (P.Point2 x y, cam) =
   let cam1 =
-        rotateView cam ((realToFrac (240 - y))/ 250.0)
+        rotateView cam (realToFrac (240 - y) / 250.0)
           (normalise (crossProd (vectorSub (viewPos cam) (cpos cam)) (upVec cam)))
-  in rotateView cam1 ((realToFrac (320 - x))/ 250.0) (0,1,0)
+  in rotateView cam1 (realToFrac (320 - x) / 250.0) (0,1,0)
 
 
 -- gets the vector from the players "muzzle point" to
@@ -65,11 +65,11 @@ firePos (x,y,z) (vx,vy,vz) =
               crossProd (normalise $ vectorSub (vx,vy,vz) (x,y,z)) (0,1,0)
           (vsx,vsy,vsz) = normalise $
               crossProd (normalise $ vectorSub (vx,vy,vz) (x,y,z)) (sx,sy,sz)
-          (sx1,sy1,sz1) = vectorAdd (2*sx,2*sy,2*sz) (x,(y+30),z)
+          (sx1,sy1,sz1) = vectorAdd (2*sx,2*sy,2*sz) (x, y + 30, z)
           (sx2,sy2,sz2) = vectorAdd (2*vsx,2*vsy,2*vsz) (sx1,sy1,sz1)
-          infin = ((x+(15000000*(vx-x))),
-                   ((y+30)+(15000000*((vy+30)-(y+30)))),
-                   (z+(15000000*(vz-z))))
+          infin = ( x + (15000000 * (vx - x))
+                  , y + 30 + (15000000*((vy+30)-(y+30)))
+                  , z + (15000000 * (vz - z)))
           (_,_,_) = normalise $ vectorSub (sx2,sy2,sz2) infin
       in ((sx2,sy2,sz2),infin)
 
@@ -92,15 +92,17 @@ rotateView cam angle (x,y,z)=
                  (minusCosTheta*y*z + x*sinTheta)*viewY +
                  (cosTheta   + minusCosTheta*z*z)*viewZ
      (nVx,nVy,nVz) = vectorAdd (cpos cam) (nextViewX, nextViewY, nextViewZ)
-   in Camera {cpos=(cpos cam), viewPos=(nVx, nVy, nVz), upVec = (upVec cam)}
+   in Camera { cpos    = cpos cam
+             , viewPos = (nVx, nVy, nVz)
+             , upVec   = upVec cam }
 
 
 -- moves the camera along the view vector
 move :: (Double,Camera) -> Camera
 move (speed,cam) =
   let
-     (x,y,z)       = (cpos cam)
-     (vpx,vpy,vpz) = (viewPos cam)
+     (x,y,z)       = cpos cam
+     (vpx,vpy,vpz) = viewPos cam
      (vx,vy,vz)    = normalise (vectorSub (viewPos cam) (cpos cam))
      newx = (vx*speed)
      newy = (vy*speed)
@@ -110,7 +112,7 @@ move (speed,cam) =
      newvz = (vz*speed)
   in Camera {cpos    = (x+newx,y+newy,z+newz),
              viewPos = (vpx+newvx,vpy+newvy,vpz+newvz),
-             upVec   = (upVec cam)}
+             upVec   = upVec cam }
 
 
 -- moves the camera pependicular to the view vector
@@ -119,23 +121,23 @@ strafe (speed,cam) =
    let
       (sx,_,sz) =
          normalise (crossProd (vectorSub (viewPos cam) (cpos cam)) (upVec cam))
-      (x,y,z) = (cpos cam)
-      (vx,vy,vz) = (viewPos cam)
+      (x,y,z) = cpos cam
+      (vx,vy,vz) = viewPos cam
       newx = x + (sx*speed)
       newz = z + (sz*speed)
       newvx = vx + (sx*speed)
       newvz = vz + (sz*speed)
    in Camera {cpos    = (newx, y, newz),
               viewPos = (newvx, vy, newvz),
-              upVec   = (upVec cam)}
+              upVec   = upVec cam}
 
 
 -- sets the position of the camera
 setPos :: Vec3 -> Camera-> Camera
 setPos vec cam =
    Camera {cpos    = vec,
-           viewPos = (viewPos cam),
-           upVec   = (upVec cam)}
+           viewPos = viewPos cam,
+           upVec   = upVec cam}
 
 
 -- lowers the camera along the y-axis
@@ -148,8 +150,8 @@ dropCam (cam,vel) =
 -- sets the target position the camera is looking at
 setViewPos :: Vec3 -> Camera-> Camera
 setViewPos vec cam =
-   Camera {cpos    = (cpos cam),
+   Camera {cpos    = cpos cam,
            viewPos = vec,
-           upVec   = (upVec cam)}
+           upVec   = upVec cam}
 
 
