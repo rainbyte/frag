@@ -51,9 +51,9 @@ module PhysicalDimensions (
     headingToBearing    -- :: Heading -> Bearing
 ) where
 
-import AFRP (Time, DTime)
-import AFRPMiscellany (fMod)
-import AFRPGeometry (Vector2, Vector3, Point2, Point3)
+import FRP.Yampa (Time, DTime)
+import FRP.Yampa.Miscellany (fMod)
+import FRP.Yampa.Geometry (Vector2, Vector3, Point2, Point3)
 
 
 -- Many of the physical dimensions below are related to time, and variables

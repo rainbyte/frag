@@ -86,6 +86,7 @@ Executable frag
    Build-Depends:  base==4.*
                  , GLUT
                  , OpenGL >= 2.0
+                 , Yampa
                  , array
                  , deepseq
                  , hashtables
@@ -98,21 +99,7 @@ Executable frag
                  , MultiParamTypeClasses
                  , TypeOperators
                  , Rank2Types
-   other-modules:  AFRP
-                 , AFRPAffineSpace
-                 , AFRPDiagnostics
-                 , AFRPEvent
-                 , AFRPForceable
-                 , AFRPGeometry
-                 , AFRPInternals
-                 , AFRPMiscellany
-                 , AFRPPoint2
-                 , AFRPPoint3
-                 , AFRPUtilities
-                 , AFRPVector2
-                 , AFRPVector3
-                 , AFRPVectorSpace
-                 , BitSet
+   other-modules:  BitSet
                  , BSP
                  , Camera
                  , Collision

@@ -42,10 +42,10 @@ module Parser (
 import Data.Maybe (isJust)
 import qualified HGL as HGL (Event(..))
 import qualified HGL as HGL (Point(..))
-import AFRP
-import AFRPUtilities
-import AFRPGeometry
--- import AFRPMiscellany (mapFst)
+import FRP.Yampa
+import FRP.Yampa.Utilities
+import FRP.Yampa.Geometry
+-- import FRP.Yampa.Miscellany (mapFst)
 
 import PhysicalDimensions
 import Command

@@ -14,9 +14,9 @@ import Data.IORef
 import Data.Maybe
 import Control.Monad
 import qualified HGL
-import AFRP
-import AFRPInternals
-import AFRPForceable
+import FRP.Yampa
+import FRP.Yampa.Internals
+import FRP.Yampa.Forceable
 import Game
 import Parser
 import Object

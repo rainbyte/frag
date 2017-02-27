@@ -1,7 +1,7 @@
 module Game where
 
-import AFRP
-import AFRPInternals (Event(..))
+import FRP.Yampa
+import FRP.Yampa.Internals (Event(..))
 import Collision
 import Raybox
 import BSP

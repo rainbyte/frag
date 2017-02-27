@@ -4,7 +4,7 @@ module ObjectBehavior (aicube, camera) where
 
 import Data.Maybe (fromJust)
 
-import AFRP
+import FRP.Yampa
 import Camera
 import IdentityList
 import MD3

@@ -14,8 +14,8 @@ module Object (
     isCamera,       -- :: ObsObjState -> Bool
 ) where
 
-import AFRP (SF, Event)
-import AFRPForceable (Forceable(), force)
+import FRP.Yampa (SF, Event)
+import FRP.Yampa.Forceable (Forceable(), force)
 import Camera
 import IdentityList
 import MD3 (AnimState)

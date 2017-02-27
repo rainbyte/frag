@@ -7,7 +7,7 @@
 module Camera where
 
 import Matrix
-import qualified AFRPGeometry as P
+import qualified FRP.Yampa.Geometry as P
 import PhysicalDimensions
 import Graphics.UI.GLUT
 
