@@ -904,23 +904,21 @@ createLightmapTexture ptr = do
 -- adjusts the brightness of the lightmap
 adjustRGB :: Ptr Word8 -> Float -> Int -> IO ()
 adjustRGB lightMap factor offst = do
-   ptr <- return (advancePtr lightMap (3*offst))
-   [r,g,b] <- (peekArray 3 ptr)
-   (r2,tempr) <- scaleRGB (((realToFrac r)*factor)/255) 1
-   (g2,tempg) <- scaleRGB (((realToFrac g)*factor)/255) tempr
-   (b2,tempb) <- scaleRGB (((realToFrac b)*factor)/255) tempg
-   byter2 <- return $ fromIntegral $ (truncate (r2 *  tempb * 255.0) :: Int)
-   byteg2 <- return $ fromIntegral $ (truncate (g2 * tempb * 255.0) :: Int)
-   byteb2 <- return $ fromIntegral $ (truncate (b2 * tempb * 255.0) :: Int)
+   let ptr = advancePtr lightMap (3 * offst)
+   [r,g,b] <- peekArray 3 ptr
+   let (r2,tempr) = scaleRGB ((realToFrac r * factor) / 255) 1
+       (g2,tempg) = scaleRGB ((realToFrac g * factor) / 255) tempr
+       (b2,tempb) = scaleRGB ((realToFrac b * factor) / 255) tempg
+       byter2 = fromIntegral (truncate (r2 * tempb * 255.0) :: Int)
+       byteg2 = fromIntegral (truncate (g2 * tempb * 255.0) :: Int)
+       byteb2 = fromIntegral (truncate (b2 * tempb * 255.0) :: Int)
    pokeArray (advancePtr lightMap (3*offst)) [byter2,byteg2,byteb2]
-
-
-scaleRGB :: Float -> Float -> IO (Float,Float)
-scaleRGB clr scl = do
-                     if ((clr > 1.0) && ((1.0/clr) < scl))
-                        then return (clr, 1.0/clr)
-                      else
-                         return (clr, scl)
+ where
+   scaleRGB :: Float -> Float -> (Float,Float)
+   scaleRGB clr scl =
+     if (clr > 1.0) && ((1.0/clr) < scl)
+     then (clr, 1.0/clr)
+     else (clr, scl)
 
 fixLightmap ::
     Int -> Array Int TextureObject -> Maybe TextureObject
