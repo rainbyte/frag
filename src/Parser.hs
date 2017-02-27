@@ -116,11 +116,11 @@ keyStat :: SF GameInput (Event (Char, Bool))
 keyStat = giKS ^>> notYet
 
 lbpPos :: SF GameInput (Event Position2)
-lbpPos = giPDS # pdsLeft ^>> edgeJust
+lbpPos = (giPDS >>> pdsLeft) ^>> edgeJust
 
 
 lbDown :: SF GameInput Bool
-lbDown = arr (giPDS # pdsLeft # isJust)
+lbDown = arr (giPDS >>> pdsLeft >>> isJust)
 
 
 rbp :: SF GameInput (Event ())
@@ -128,22 +128,22 @@ rbp = rbpPos >>^ (`tag` ())
 
 
 rbpPos :: SF GameInput (Event Position2)
-rbpPos = giPDS # pdsRight ^>> edgeJust
+rbpPos = (giPDS >>> pdsRight) ^>> edgeJust
 
 
 rbDown :: SF GameInput Bool
-rbDown = arr (giPDS # pdsRight # isJust)
+rbDown = arr (giPDS >>> pdsRight >>> isJust)
 
 
 dragStart :: SF GameInput (Event ())
-dragStart = giPDS # pdsDrag ^>> edgeBy detectStart (Just undefined)
+dragStart = (giPDS >>> pdsDrag) ^>> edgeBy detectStart (Just undefined)
     where
            detectStart Nothing  (Just _) = Just ()
            detectStart _            _      = Nothing
 
 
 dragStop :: SF GameInput (Event Distance2)
-dragStop = (giPDS # pdsDrag ^>> edgeBy detectStop Nothing) &&& dragVec
+dragStop = ((giPDS >>> pdsDrag) ^>> edgeBy detectStop Nothing) &&& dragVec
                  >>^ \(e, dv) -> e `tag` dv
     where
            detectStop (Just _) Nothing = Just ()
@@ -152,16 +152,16 @@ dragStop = (giPDS # pdsDrag ^>> edgeBy detectStop Nothing) &&& dragVec
 
 -- (Last) drag start position.
 dragStartPos :: SF GameInput Position2
-dragStartPos = arr (giPDS # pdsDragStartPos)
+dragStartPos = arr (giPDS >>> pdsDragStartPos)
 
 
 -- (Last) drag vector.
 dragVec :: SF GameInput Distance2
-dragVec = arr (giPDS # pdsDragVec)
+dragVec = arr (giPDS >>> pdsDragVec)
 
 
 dragging :: SF GameInput Bool
-dragging = arr (giPDS # pdsDrag # isJust)
+dragging = arr (giPDS >>> pdsDrag >>> isJust)
 
 
 
