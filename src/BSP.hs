@@ -251,17 +251,12 @@ renderBSP mapRef (x,y,z) = do
 
 -- given a position finds a in the tree where the position lies in
 findLeaf :: (Double, Double,Double) -> Tree -> IO BSPLeaf
-findLeaf (x,y,z) (Branch node left right) = do
-   let (px,py,pz) = (planeNormal node)
-   let d = (dist node)
-   let dstnc = (px*x)+(py*y)+(pz*z)-d
-   case (dstnc >= 0) of
-      True  -> do
-                 leaf <- findLeaf (x,y,z) left
-                 return leaf
-      False -> do
-                 leaf <- findLeaf (x,y,z) right
-                 return leaf
+findLeaf (x,y,z) (Branch node left right) =
+   let (px,py,pz) = planeNormal node
+       d = dist node
+       dstnc = (px*x)+(py*y)+(pz*z)-d
+       branch = if dstnc >= 0 then left else right
+   in findLeaf (x,y,z) branch
 findLeaf (_,_,_) (Leaf leaf) = return leaf
 
 
