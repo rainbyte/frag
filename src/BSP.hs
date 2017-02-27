@@ -30,7 +30,7 @@ module BSP (
 
 import Data.IORef
 import Control.Exception ( bracket )
-import Control.Monad ( liftM, when )
+import Control.Monad ( when )
 import System.IO hiding (withBinaryFile)
 import System.IO.Error ( mkIOError, eofErrorType )
 import Foreign
@@ -546,8 +546,8 @@ readNode handle planeArray offst = do
           getAndPeek handle (castPtr buf :: Ptr CInt) (undefined :: CInt)
    let getCInts =
           getAndPeeks handle (castPtr buf :: Ptr CInt) (undefined :: CInt)
-   let ints    = liftM toInts (getCInts 3)
-   let get3Ints   = liftM get3t ints
+   let ints    = fmap toInts (getCInts 3)
+   let get3Ints   = fmap get3t ints
    plnIndex  <- getCInt
    frt  <- getCInt
    bck  <- getCInt
@@ -676,12 +676,12 @@ readFace handle origin  lightmaps textures
           getAndPeeks handle (castPtr buf :: Ptr CInt) (undefined :: CInt)
    let getCFloats =
           getAndPeeks handle (castPtr buf :: Ptr CFloat) (undefined :: CFloat)
-   let ints       = liftM toInts (getCInts 4)
-   let get4Ints   = liftM get4t ints
-   let floats     = liftM toFloats (getCFloats 3)
-   let get3Floats = liftM get3t floats
-   let twoInts    = liftM toInts (getCInts 2)
-   let get2Ints   = liftM get2t twoInts
+   let ints       = fmap toInts (getCInts 4)
+   let get4Ints   = fmap get4t ints
+   let floats     = fmap toFloats (getCFloats 3)
+   let get3Floats = fmap get3t floats
+   let twoInts    = fmap toInts (getCInts 2)
+   let get2Ints   = fmap get2t twoInts
    (a,b,c,d) <- get4Ints
    (e,f,g,h) <- get4Ints
    (i,j,k,l) <- get4Ints
@@ -851,7 +851,7 @@ readVertex handle offst = do
    let getWord8s  =
           getAndPeeks handle (castPtr buf :: Ptr Word8) (undefined :: Word8)
    let floats = (getCFloats 3)
-   let get3Floats = liftM get3t floats
+   let get3Floats = fmap get3t floats
    (x,y,z)        <- get3Floats
    texCoords      <- getCFloats 2
    lightMapCoords <- getCFloats 2

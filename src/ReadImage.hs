@@ -16,7 +16,7 @@ module ReadImage ( readImage ) where
 
 import Data.Word ( Word8, Word32 )
 import Control.Exception ( bracket )
-import Control.Monad ( liftM, when )
+import Control.Monad ( when )
 import System.IO ( Handle, IOMode(ReadMode), openBinaryFile, hGetBuf, hClose )
 import System.IO.Error ( mkIOError, eofErrorType )
 import Foreign ( Ptr, alloca, mallocBytes, Storable(..) )
@@ -43,7 +43,7 @@ readGLsizei :: Handle -> IO GLsizei
 readGLsizei handle =
    alloca $ \buf -> do
       hGetBufFully handle buf (sizeOf (undefined :: Word32BigEndian))
-      liftM word32BigEndianToGLsizei $ peek buf
+      word32BigEndianToGLsizei <$> peek buf
 
 -- A handy variant of hGetBuf with additional error checking
 hGetBufFully :: Handle -> Ptr a -> Int -> IO ()
