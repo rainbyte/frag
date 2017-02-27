@@ -30,7 +30,7 @@ module BSP (
 
 import Data.IORef
 import Control.Exception ( bracket )
-import Control.Monad ( when )
+import Control.Monad ( when, unless )
 import System.IO hiding (withBinaryFile)
 import System.IO.Error ( mkIOError, eofErrorType )
 import Foreign
@@ -326,22 +326,15 @@ isClusterVisible _ _ _ = return False
 renderFaces :: BitSet -> BSPMap -> [BSPFace] -> IO()
 renderFaces _ _ [] = return ()
 renderFaces bitSet mp (face:faces) = do
-    isSet <- (isSetBS bitSet (faceNo face))
-    case (isSet, (faceType face)) of
-      (False, 1) -> do
-          setBS bitSet (faceNo face)
-          renderPolygonFace face (vertexData mp) (vindices mp)
-          renderFaces bitSet mp faces
-      (False, 2) -> do
-          setBS bitSet (faceNo face)
-          renderPatches face
-          renderFaces bitSet mp faces
-      (False, 3) -> do
-          setBS bitSet (faceNo face)
-          renderMeshFace face (vertexData mp) (vindices mp)
-          renderFaces bitSet mp faces
-      (_  , _) -> do
-          renderFaces bitSet mp faces
+    isSet <- isSetBS bitSet (faceNo face)
+    unless isSet $ do
+        setBS bitSet (faceNo face)
+        case faceType face of
+            1 -> renderPolygonFace face (vertexData mp) (vindices mp)
+            2 -> renderPatches face
+            3 -> renderMeshFace face (vertexData mp) (vindices mp)
+            _ -> pure ()
+    renderFaces bitSet mp faces
 
 
 
