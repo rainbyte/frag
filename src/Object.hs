@@ -14,8 +14,9 @@ module Object (
     isCamera,       -- :: ObsObjState -> Bool
 ) where
 
+import Control.DeepSeq (NFData(..), force)
+
 import FRP.Yampa (SF, Event)
-import FRP.Yampa.Forceable (Forceable(), force)
 import Camera
 import IdentityList
 import MD3 (AnimState)
@@ -86,9 +87,9 @@ data ObsObjState =
           fade          :: !Float
          }
 
-instance Forceable ObsObjState where
+instance NFData ObsObjState where
     -- If non-strict fields: oosNonStrict1 obj `seq` ... `seq` obj
-    force obj = obj
+    rnf !_ = ()
 
 isRay :: ObsObjState -> Bool
 isRay (OOSRay {}) = True
