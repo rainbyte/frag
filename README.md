@@ -1,3 +1,5 @@
+![GIF Preview](frag.gif)
+
 Author: Mun Hon Cheong (mhch295@cse.unsw.edu.au)
 
 Program: Frag - a FPS i put together using Haskell and with Yampa
