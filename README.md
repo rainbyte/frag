@@ -8,22 +8,59 @@ Year: 2005, 2007-8
 
 License: GPL
 
-Usage: $ frag leveleg
 
-'leveleg' can be an arbitrary Quake III Arena level; a default level is provided in this package, and is installed in 'share/frag-1.1', wherever that is. For example, if it's installed into ~/bin, and frag occupies ~/bin/frag, a successful invocation might be 'frag ../share/frag-1.1/leveleg'.
+## Requirements
 
-Requirements: A graphics card with support for multitexturing and vertex arrays
+* A graphics card with support for multitexturing and vertex arrays
+* Debian/Ubuntu Linux: `$ sudo apt-get install freeglut3-dev`
 
-Building:
-    ghc --make -O2 -fglasgow-exts main.hs
-or
-    runhaskell Setup configure --user --prefix=/home/foo
-    runhaskell Setup build
-    runhaskell Setup install
 
-Controls: mouse moves around the view, 'w'\'a'\'s'\'d' to move and strafe, 'e to jump, 'z' and 'x' to lock and unlock the mouse, left click to fire.
+## Building
+
+#### Stack
+
+```
+$ stack install
+$ stack build
+```
+
+#### GHC
+
+```
+ghc --make -O2 -fglasgow-exts main.hs
+```
+
+#### runhaskell
+
+```
+runhaskell Setup configure --user --prefix=/home/foo
+runhaskell Setup build
+runhaskell Setup install
+```
+
+
+## Usage
+
+```
+$ frag leveleg
+```
+
+`leveleg` can be an arbitrary Quake III Arena level; a default level is provided in this package, and is installed at the project root. For example, if installed into `~/bin`, and `frag` occupies `~/bin/frag`, a successful invocation might be `frag ../share/frag-1.1/leveleg`.
+
+
+## Controls
+
+* `w` forward
+* `s` back
+* `a` strafe left
+* `d` strafe right
+
+* `e` jump
+* `z`/`x` lock / unlock mouse
+* `Mouse0` (left click) fire
+
+
+---
 
 cheers,
 Mun
-
-
