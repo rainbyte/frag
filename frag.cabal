@@ -12,7 +12,8 @@ Homepage:            http://haskell.org/haskellwiki/Frag
 Build-Type:          Simple
 Cabal-Version:       >= 1.2
 Tested-with:         GHC==6.8.2
-data-files:          README,
+data-files:
+     README.md,
      README-leveleg
      -- Graphics files
      leveleg.bsp,
@@ -50,7 +51,7 @@ data-files:          README,
      tga/textures/gothic_floor/q1metal7_99.tga
      tga/textures/gothic_floor/largerblock3b3.tga,
      tga/textures/gothic_floor/largerblock3b3dim.tga
-     tga/textures/e7/e7brickfloor01.tga, 
+     tga/textures/e7/e7brickfloor01.tga,
      tga/textures/e7/e7bmtrim.tga
      tga/textures/e7/e7bricks01.tga,
      tga/textures/e7/e7sbrickfloor.tga
