@@ -53,8 +53,12 @@ module PhysicalDimensions (
 
 import Data.Fixed (mod')
 
+import Data.Point2
+import Data.Point3
+import Data.Vector2
+import Data.Vector3
+
 import FRP.Yampa (Time, DTime)
-import FRP.Yampa.Geometry (Vector2, Vector3, Point2, Point3)
 
 
 -- Many of the physical dimensions below are related to time, and variables

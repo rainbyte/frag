@@ -43,9 +43,9 @@ import Data.Maybe (isJust)
 import qualified HGL as HGL (Event(..))
 import qualified HGL as HGL (Point(..))
 import FRP.Yampa
-import FRP.Yampa.Utilities
-import FRP.Yampa.Geometry
--- import FRP.Yampa.Miscellany (mapFst)
+
+import Data.AffineSpace
+import Data.Point2
 
 import PhysicalDimensions
 import Command

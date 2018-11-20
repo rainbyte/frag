@@ -16,7 +16,6 @@ import Control.DeepSeq (force)
 import Control.Monad
 import qualified HGL
 import FRP.Yampa
-import FRP.Yampa.Internals
 import Game
 import Parser
 import Object

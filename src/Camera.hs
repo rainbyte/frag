@@ -7,9 +7,10 @@
 module Camera where
 
 import Matrix
-import qualified FRP.Yampa.Geometry as P
 import PhysicalDimensions
 import Graphics.UI.GLUT
+
+import qualified Data.Point2 as P
 
 data Camera = Camera {cpos      :: !(Double,Double,Double),
                       viewPos   :: !(Double,Double,Double),

@@ -92,6 +92,7 @@ Executable frag
                  , deepseq
                  , hashtables
                  , random
+                 , simple-affine-space
    Hs-source-dirs: src
    Ghc-options:    -O2 -funbox-strict-fields -optc-O2
    Extensions:     BangPatterns
