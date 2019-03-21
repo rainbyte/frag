@@ -13,6 +13,7 @@ License: GPL
 
 * A graphics card with support for multitexturing and vertex arrays
 * Debian/Ubuntu Linux: `$ sudo apt-get install freeglut3-dev`
+* macOS with Homebrew: Run `$ brew cask install xquartz && brew install freeglut` and then restart.
 
 
 ## Building
