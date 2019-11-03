@@ -11,7 +11,7 @@ Maintainer:          dons@galois.com
 Homepage:            http://haskell.org/haskellwiki/Frag
 Build-Type:          Simple
 Cabal-Version:       >= 1.2
-Tested-with:         GHC==6.8.2
+Tested-with:         GHC==8.6.5
 data-files:
      README.md,
      README-leveleg
